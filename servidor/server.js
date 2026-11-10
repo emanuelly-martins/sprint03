@@ -1,4 +1,4 @@
-import express from 'express'
+  import express from 'express'
 
 const app = express()
 const porta = 3000
@@ -86,6 +86,44 @@ app.get("/mensagens/:id", (req, res) => {
 });
 app.get("/total-mensagens", (req, res) => res.json({ total: mensagens.length }));
 
+function consultar(falhar =  false) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            falhar
+            ? reject(new Error('Falhou'))
+            : resolve(mensagens);
+        }, 1000);
+    });
+}
+
+app.get("/mensagens-then", (req,res) => {
+    consultar()
+    .then(lista => res.json(lista))
+    .catch(() => res.status(500).json({ erro: "Falha n consulta"}));
+})
+
+app.get("/mensagem-async", async (req, res) => {
+    try {
+        res.json(await consultar());
+    } catch (erro) {
+        res.status(500).json({
+            erro: "Falha na consulta"
+        });
+    }
+});
+
+app.get("/mensagens-erro", async (req, res) => {
+    try {
+        res.json(await consultar(true));
+    } catch (erro) {
+        res.status(500).json({
+            erro: "Falha simulada"
+        });
+    }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor em http://localhost:${PORT}`);
 });
+
+
